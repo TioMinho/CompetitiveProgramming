@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stack>
 #include <cstdint>
+#include <vector>
 
 using namespace std;
 
@@ -51,14 +52,11 @@ int main()
 	stack<int> pilha[3];
 
 	pilha[0].push(1);
-	pilha[0].push(0);
-	pilha[0].push(0);
-	pilha[1].push(0);
+	pilha[0].push(2);
 	pilha[1].push(1);
 	pilha[1].push(0);
-	pilha[2].push(0);
-	pilha[2].push(0);
-	pilha[2].push(0);
+	pilha[2].push(1);
+	pilha[2].push(4);
 
 	cout << canWin(pilha) << endl;
 
