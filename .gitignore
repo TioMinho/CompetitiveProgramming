@@ -12,3 +12,10 @@
 *.out
 *.app
 *.bin
+
+# Mac OS strange folders #
+##########################
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
