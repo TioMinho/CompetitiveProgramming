@@ -1,179 +1,135 @@
-#include <iostream>
+#include <bits/stdc++.h> 
+#include <algorithm>
 #include <vector>
 
-#define MAXN 4e4
-#define INF 1e8
+#define MAXN 100001
 
 using namespace std;
 
-class Node {
-public:
-	int f[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+// --- NODE ----
+struct Node {
+	int f[9];
 
-	// Methods
-	Node() {}
-	Node(int f_0[9]) {
-		copy(f, f+9, f_0);
-	}
-
-	int getF() {
-		int f_i = 0;
-		for (int i = 1; i < 9; ++i)	
-			if(f[f_i] <= f[i]) f_i = i;
-
-		return f_i;
-	}
-
-	void add(int val) {
-		val %= 9;
-		int f_old[9]; copy(f, f+9, f_old);
-
-		for (int i = 0; i < 9; ++i) f[(val+i) % 9] = f_old[i];
-	}
-
-	void merge(Node n) {
-		for (int i = 0; i < 9; ++i) f[i] += n.f[i];
+	Node(){
+		memset(f, 0, sizeof(f));
 	}
 };
 
-class SegmentTree {
-public:
-	vector<Node> st;
-	vector<int> lz, A;
-	int n;
-	int left(int p)  { return p << 1; }
-	int right(int p) { return (p << 1)+1; }
+int getF(Node *node) {
+	int f_i = 0;
+	for (int i = 1; i < 9; ++i)	
+		if(node->f[f_i] <= node->f[i]) f_i = i;
 
-	void build(int p, int L, int R) {  // O(n)
-		if (L==R) { 
-			Node newNode; newNode.f[1] = 1; 
-			st[p] = newNode; 
-		}
-		else {
-			build(left(p) ,  L         , (L+R)/2);
-			build(right(p), (L+R)/2 + 1, R      );
+	return f_i;
+}
 
-			Node p1 = st[left(p)], p2 = st[right(p)];
+void add(Node *node, int val) {
+	val %= 9;
+	Node newNode = *node;
+	for (int i = 0; i < 9; ++i) 
+		node->f[(val+i) % 9] = newNode.f[i];
+}
 
-			// CHANGE TO THE DESIRED TREE
-			p1.merge(p2);
-			st[p] = p1;
-	}}
+Node merge(Node *n1, Node *n2) {
+	Node nt;
+	for (int i = 0; i < 9; ++i) 
+		nt.f[i] = n1->f[i] + n2->f[i];
+	return nt;
+}
+// -----
 
-	void update(int p, int L, int R, int l, int r, int val) { // O(lg n)
-		if(lz[p] != 0) {
-			st[p].add(lz[p]);
+// --- SEGTREE ----
+Node st[MAXN << 2];
+int lz[MAXN << 2];
+int N, Q, l, r;
 
-			if(L != R) {
-				lz[left(p)]  += lz[p];
-				lz[right(p)] += lz[p];
-			} else A[L] += lz[p]; 
-			lz[p] = 0;
-		}
+int left(int p)  { return p << 1; }
+int right(int p) { return (p << 1)+1; }
 
-		if (l >  R || r <  L) return;			// Out of query range
-		if (L >= l && R <= r) {
-			st[p].add(val);	
+void build(int p, int L, int R) {  // O(n)
+	if (L==R) { 
+		st[p].f[1] = 1; 
+		return;
+	}
+	else {
+		build(left(p) ,  L         , (L+R)/2);
+		build(right(p), (L+R)/2 + 1, R      );
 
-			if(L != R) {
-				lz[left(p)]  += val;
-				lz[right(p)] += val;
-			} else A[L] += val; 
-			return;
-		}
+		st[p].f[1] = R-L+1;
+}}
 
-		update(left(p) ,  L         , (L+R)/2, l, r, val);
-		update(right(p), (L+R)/2 + 1,  R,      l, r, val);
+void lazyProp(int p, int L, int R, int val) { // O(1)
+	if(val != 0) {
+		add(&st[p], val);
 
-		// CHANGE TO THE DESIRED TREE
-		Node p1 = st[left(p)], p2 = st[right(p)];
-		p1.merge(p2);
-		st[p] = p1;
+		if(L != R) {
+			lz[left(p)]  += val;
+			lz[right(p)] += val;
+		} lz[p] = 0;
+	}
+}
+
+void update(int p, int L, int R, int l, int r, int val) { // O(lg n)
+	lazyProp(p, L, R, lz[p]);
+
+	if (l >  R || r <  L) return;			// Out of query range
+	if (L >= l && R <= r) {
+		lazyProp(p, L, R, val);
+		return;
 	}
 
-	Node query(int p, int L, int R, int l, int r) { // O(lg n)
-		if (l >  R || r <  L) return Node();		// Out of query range (CHANGE)
+	update(left(p) ,  L         , (L+R)/2, l, r, val);
+	update(right(p), (L+R)/2 + 1,  R,      l, r, val);
 
-		// LAZY
-		if(lz[p] != 0) {
-			st[p].add(lz[p]);		// IF SUM USE st[p] += (R-L+1)*lz[p]
+	// CHANGE TO THE DESIRED TREE
+	st[p] = merge(&st[left(p)], &st[right(p)]);
+}
 
-			if(L != R) {
-				lz[left(p)]  += lz[p];
-				lz[right(p)] += lz[p];
-			} else A[L] += lz[p]; 
-			lz[p] = 0;
-		}
-		// ---
+Node query(int p, int L, int R, int l, int r) { // O(lg n)
+	if (l >  R || r <  L) return Node();		// Out of query range (CHANGE)
 
-		if (L >= l && R <= r) return st[p];		// Inside query range
+	// LAZY
+	lazyProp(p, L, R, lz[p]);
+	// ---
 
-		Node p1 = query(left(p) ,  L        , (L+R)/2 , l, r);
-		Node p2 = query(right(p), (L+R)/2 +1,  R      , l, r);
+	if (L >= l && R <= r) return st[p];		// Inside query range
 
-		// CHANGE TO THE DESIRED TREE
-		p1.merge(p2);
-		return p1;
+	Node p1 = query(left(p) ,  L        , (L+R)/2 , l, r);
+	Node p2 = query(right(p), (L+R)/2 +1,  R      , l, r);
+
+	// CHANGE TO THE DESIRED TREE
+	return merge(&p1, &p2);
+}
+
+void dfs(int p, int L, int R) { // O(n)
+	lazyProp(p, L, R, lz[p]);
+
+	if(R == L) {
+		printf("%d\n", (max_element(st[p].f, st[p].f+9) - st[p].f));
+		return;
 	}
 
-	void dfs(int p, int L, int R) { // O(n)
-		if(R == L) {
-			st[p].add(lz[p]);
-			A[L] += lz[p];
-			lz[p] = 0;
-		} else {
-			if(lz[p] != 0) {
-				st[p].add(lz[p]);
+	dfs(left(p) ,  L        , (L+R)/2);
+	dfs(right(p), (L+R)/2 +1,  R     );
+}
 
-				if(L != R) {
-					lz[left(p)]  += lz[p];
-					lz[right(p)] += lz[p];
-				} else A[L] += lz[p]; 
-				lz[p] = 0;
-			}
-
-			dfs(left(p) ,  L        , (L+R)/2);
-			dfs(right(p), (L+R)/2 +1,  R     );
-
-			return;
-		}
-	}
-
-// Use only those methods:
-	SegmentTree(const vector<int> &_A) {
-		A = _A; n = (int)A.size();
-		
-		Node aux;
-		st.assign(4*n, aux);
-		
-		lz.assign(4*n, 0);
-		build(1, 0, n-1);
-	}
-
-	Node query(int i, int j) { return query(1, 0, n-1, i, j); }
-	void update(int l, int r, int val) { return update(1, 0, n-1, l, r, val); }
-	void dfs() { return dfs(1, 0, n-1); }
-};
+Node query(int i, int j) { return query(1, 0, N-1, i, j); }
+void update(int l, int r, int val) { return update(1, 0, N-1, l, r, val); }
+void dfs() { return dfs(1, 0, N-1); }
+// -----
 
 int main() {
+	scanf("%d%d", &N, &Q);
 
-	int N, Q, l, r;
-	cin >> N >> Q;
-
-	vector<int> A(N, 1);
-	SegmentTree st(A);
+	build(1, 0, N-1);
 
 	for (int i = 0; i < Q; ++i)	{
-		cin >> l >> r;
+		scanf("%d%d", &l, &r);
 
-		Node n = st.query(l, r);
-		st.update(l, r, n.getF());
+		Node n = query(l, r);
+		update(l, r, getF(&n));
 	}
 
-	st.dfs();
-
-	for (int i = 0; i < N; ++i)
-		cout << st.A[i] % 9 << endl;
-
-	return 0;
+	dfs();
+    return 0; 
 }
