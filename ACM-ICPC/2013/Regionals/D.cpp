@@ -1,20 +1,18 @@
-#include <stdio.h>
+#include <iostream>
 #include <math.h>
 
-void printArray(int* array, int size)
-{
+using namespace std;
+
+void printArray(int* array, int size) {
 	for(int i = 0; i < size; i++)
 		printf("%d ", array[i]);
-
 	printf("\n");
 }
 
-bool compareArray(int* inFita, int inSize, int* outFita, int outSize)
-{
+bool compareArray(int* inFita, int inSize, int* outFita, int outSize) {
 	if(inSize != outSize)
 		return false;
-	else
-	{
+	else {
 		for(int i = 0; i < inSize; i++)
 			if(inFita[i] != outFita[i])
 				return false;		
@@ -23,8 +21,7 @@ bool compareArray(int* inFita, int inSize, int* outFita, int outSize)
 	return true;
 }
 
-bool dobraRecursiva(int* inFita, int* outFita, int inSize, int outSize, int dobra)
-{
+bool dobraRecursiva(int* inFita, int* outFita, int inSize, int outSize, int dobra) {
 	/*
 		TESTES
 	printf("In: ");
@@ -39,8 +36,7 @@ bool dobraRecursiva(int* inFita, int* outFita, int inSize, int outSize, int dobr
 	const int tempSize = inSize/2+fabs(inSize/2 - dobra);
 	int tempFita[tempSize];
 
-	for(int i = 0; i < tempSize; i++)
-	{
+	for(int i = 0; i < tempSize; i++) {
 		tempFita[(tempSize - 1) - i] = 0;
 		if(dobra - i > 0) tempFita[(tempSize - 1) - i] += inFita[(dobra - 1) - i];
 		if(dobra + i < inSize) tempFita[(tempSize - 1) - i] += inFita[dobra + i];
@@ -62,8 +58,7 @@ bool dobraRecursiva(int* inFita, int* outFita, int inSize, int outSize, int dobr
 	return founded;
 }
 
-bool dobraRecursiva(int* inFita, int* outFita, int inSize, int outSize)
-{
+bool dobraRecursiva(int* inFita, int* outFita, int inSize, int outSize) {
 	for(int i = 0; i < inSize; i++){
 		if(dobraRecursiva(inFita, outFita, inSize, outSize, i))
 			return true;
@@ -77,27 +72,26 @@ int main()
 	// Entrada de Dados
 	// Fita de Entrada
 	int inSize;
-	scanf("%d", &inSize);
-
-	int inFita[inSize];
-
-	int i = 0;
-	while(scanf("%d", &inFita[i++]) && i < inSize);
-
-	// Fita de Saída
-	int outSize;
-	scanf("%d", &outSize);
-
-	int outFita[outSize];
-
-	int j = 0;
-	while(scanf("%d", &outFita[j++]) && j < outSize);
-
-	// Dobraduras Recursivas
-	if(dobraRecursiva(inFita, outFita, inSize, outSize))
-		printf("S\n");
-	else
-		printf("N\n");
-
+	while(cin >> inSize) {
+		int inFita[inSize];
+	
+		int i = 0;
+		while(scanf("%d", &inFita[i++]) && i < inSize);
+	
+		// Fita de Saída
+		int outSize;
+		scanf("%d", &outSize);
+	
+		int outFita[outSize];
+	
+		int j = 0;
+		while(scanf("%d", &outFita[j++]) && j < outSize);
+	
+		// Dobraduras Recursivas
+		if(dobraRecursiva(inFita, outFita, inSize, outSize))
+			printf("S\n");
+		else
+			printf("N\n");
+	}
 	return 0;
 }

@@ -28,23 +28,23 @@ public:
 				//  ...
 	}}
 
-	void update(int p, int L, int R, int l, int r, int val) { // O(lg n)
-		if(lz[p] != 0) {
-			st[p] += lz[p];		// IF SUM USE st[p] += (R-L+1)*lz[p]
+	void lazyprop(int p, int L, int R, int val) {
+		if(!val) return;
 
-			if(L != R) {
-				lz[left(p)]  += lz[p];
-				lz[right(p)] += lz[p];
-			}	lz[p] = 0;
-		}
+		st[p] += val;		// IF SUM USE st[p] += (R-L+1)*val
+
+		if(L != R) {
+			lz[left(p)]  += val;
+			lz[right(p)] += val;
+	}}
+
+	void update(int p, int L, int R, int l, int r, int val) { // O(lg n)
+		lazyprop(p, L, R, lz[p]); lz[p] = 0;
 
 		if (l >  R || r <  L) return;			// Out of query range
 		if (L >= l && R <= r) {
-			st[p] += val;		// IF SUM USE st[p] += (R-L+1)*val
-			if(L != R) {
-				lz[left(p)]  += val;
-				lz[right(p)] += val;
-			}	return;
+			lazyprop(p, L, R, val);
+			return;
 		}
 
 		update(left(p) ,  L         , (L+R)/2, l, r, val);
@@ -62,14 +62,7 @@ public:
 		if (l >  R || r <  L) return INF;		// Out of query range (CHANGE)
 
 		// LAZY
-		if(lz[p] != 0) {
-			st[p] += lz[p];		// IF SUM USE st[p] += (R-L+1)*lz[p]
-
-			if(L != R) {
-				lz[left(p)]  += lz[p];
-				lz[right(p)] += lz[p];
-			}	lz[p] = 0;
-		}
+		lazyprop(p, L, R, lz[p]); lz[p] = 0;
 		// ---
 
 		if (L >= l && R <= r) return st[p];		// Inside query range
